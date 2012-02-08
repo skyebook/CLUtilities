@@ -60,7 +60,12 @@ public class DistanceTest {
 	FloatBuffer x2 = xyzBuffers[0];
 	FloatBuffer y2 = xyzBuffers[1];
 	FloatBuffer z2 = xyzBuffers[2];
+        
 	FloatBuffer distances = BufferUtils.createFloatBuffer(vectors.length);
+        for(int i=0; i<distances.capacity(); i++){
+            distances.put(i*2);
+        }
+        distances.rewind();
 
 	// do CL work
 	try {
@@ -90,7 +95,7 @@ public class DistanceTest {
 	    CLMem z2Mem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_COPY_HOST_PTR, z2, null);
 	    CL10.clEnqueueWriteBuffer(queue, z2Mem, 1, 0, z2, null, null);
 
-	    CLMem distancesMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_COPY_HOST_PTR, distances, null);
+	    CLMem distancesMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_COPY_HOST_PTR, distances, null);
 	    CL10.clEnqueueWriteBuffer(queue, distancesMem, 1, 0, distances, null, null);
 
 	    CL10.clFinish(queue);
