@@ -30,7 +30,10 @@ public class VectorBufferConverter {
 	    y.put(vector.y);
 	    z.put(vector.z);
 	}
-	
+        
+	x.rewind();
+        y.rewind();
+        z.rewind();
 	return new FloatBuffer[]{x, y, z};
     }
 }

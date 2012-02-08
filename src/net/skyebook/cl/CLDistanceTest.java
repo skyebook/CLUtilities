@@ -21,35 +21,21 @@ import org.lwjgl.opencl.*;
  *
  * @author Skye Book
  */
-public class DistanceTest {
+public class CLDistanceTest {
 
     public static void main(String[] args) {
 
 	//LittleJMEApp jMEApp = new LittleJMEApp();
 	//jMEApp.start();
 	
-	int size = 50;
+	int size = 15000000;
 
 
-	Vector3f[] findDistanceFromBuffers = new Vector3f[size];
-	for (int i = 0; i < size; i++) {
-	    Vector3f vector = new Vector3f(FastMath.rand.nextFloat(),
-		    FastMath.rand.nextFloat(), FastMath.rand.nextFloat());
-	    findDistanceFromBuffers[i] = vector;
-	}
-	
-	
-	Vector3f[] vectors = new Vector3f[size];
-	float[] nativeDistances = new float[size];
-	float[] clDistances = new float[size];
-
-	// populate the array with random vectors
-	for (int i = 0; i < size; i++) {
-	    Vector3f vector = new Vector3f(FastMath.rand.nextFloat(),
-		    FastMath.rand.nextFloat(), FastMath.rand.nextFloat());
-	    //System.out.println(vector);
-	    vectors[i] = vector;
-	}
+	Vector3f[] findDistanceFromBuffers = TestUtils.createRandomVectorArray(size);
+	Vector3f[] vectors = TestUtils.createRandomVectorArray(size);
+        
+	//float[] nativeDistances = new float[size];
+	//float[] clDistances = new float[size];
 
 	FloatBuffer[] xyz1Buffers = VectorBufferConverter.toFloatBuffers(findDistanceFromBuffers);
 	FloatBuffer x1 = xyz1Buffers[0];
@@ -61,15 +47,18 @@ public class DistanceTest {
 	FloatBuffer y2 = xyzBuffers[1];
 	FloatBuffer z2 = xyzBuffers[2];
         
-	FloatBuffer distances = BufferUtils.createFloatBuffer(vectors.length);
-        for(int i=0; i<distances.capacity(); i++){
-            distances.put(i*2);
+        for(int i=0; i<vectors.length; i++){
+            //System.out.println(x1.get()+", "+y1.get()+", "+z1.get()+"\t"+x2.get()+", "+y2.get()+", "+z2.get());
         }
-        distances.rewind();
+        
+	FloatBuffer distances = BufferUtils.createFloatBuffer(vectors.length);
 
 	// do CL work
 	try {
+            long start = System.currentTimeMillis();
 	    CL.create();
+            System.out.println("CL created in " + (System.currentTimeMillis()-start) + "ms");
+            start = System.currentTimeMillis();
 	    CLPlatform platform = CLPlatform.getPlatforms().get(0);
 	    List<CLDevice> devices = platform.getDevices(CL10.CL_DEVICE_TYPE_GPU);
 	    CLContext context = CLContext.create(platform, devices, null, null, null);
@@ -99,8 +88,10 @@ public class DistanceTest {
 	    CL10.clEnqueueWriteBuffer(queue, distancesMem, 1, 0, distances, null, null);
 
 	    CL10.clFinish(queue);
+            
+            System.out.println("Buffers Created in " + (System.currentTimeMillis()-start) + "ms");
 
-	    String source = KernelUtils.loadSource("kernels/Vector3fFunctions_1.c");
+	    String source = KernelUtils.loadSource("kernels/Vector3fFunctions.c");
 	    //String source = KernelUtils.loadSource("kernels/Test.c");
 	    System.out.println(source);
 	    // program/kernel creation
@@ -109,10 +100,11 @@ public class DistanceTest {
 
 	    // give the name of the method you want to call in the OpenCL source
 	    CLKernel kernel = CL10.clCreateKernel(program, "vector3_distance", null);
-	    
+            
+	    start = System.currentTimeMillis();
 	    // execution
 	    PointerBuffer kernel1DGlobalWorkSize = BufferUtils.createPointerBuffer(1);
-	    kernel1DGlobalWorkSize.put(0, vectors.length);
+	    kernel1DGlobalWorkSize.put(0, x1.capacity());
 	    kernel.setArg(0, x1Mem);
 	    kernel.setArg(1, y1Mem);
 	    kernel.setArg(2, z1Mem);
@@ -125,8 +117,10 @@ public class DistanceTest {
 	    // read the results back
 	    CL10.clEnqueueReadBuffer(queue, distancesMem, 1, 0, distances, null, null);
 	    CL10.clFinish(queue);
+            
+            System.out.println("Execution took " + (System.currentTimeMillis()-start) + "ms");
 
-	    print(distances);
+	    //print(distances);
 
 	    // teardown
 	    CL10.clReleaseKernel(kernel);
@@ -137,11 +131,11 @@ public class DistanceTest {
 
 
 	} catch (FileNotFoundException ex) {
-	    Logger.getLogger(DistanceTest.class.getName()).log(Level.SEVERE, null, ex);
+	    Logger.getLogger(CLDistanceTest.class.getName()).log(Level.SEVERE, null, ex);
 	} catch (IOException ex) {
-	    Logger.getLogger(DistanceTest.class.getName()).log(Level.SEVERE, null, ex);
+	    Logger.getLogger(CLDistanceTest.class.getName()).log(Level.SEVERE, null, ex);
 	} catch (LWJGLException ex) {
-	    Logger.getLogger(DistanceTest.class.getName()).log(Level.SEVERE, null, ex);
+	    Logger.getLogger(CLDistanceTest.class.getName()).log(Level.SEVERE, null, ex);
 	}
     }
 

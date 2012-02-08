@@ -6,5 +6,5 @@ global const float *v2y,
 global const float *v2z,
 global float *distanceResult){
 	unsigned int xid = get_global_id(0);
-	distanceResult[xid] = (float)v1z[xid];
+	distanceResult[xid] = v1z[xid];
 }
