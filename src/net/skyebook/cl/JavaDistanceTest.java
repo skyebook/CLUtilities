@@ -13,7 +13,7 @@ import com.jme3.math.Vector3f;
 public class JavaDistanceTest {
     
     public static void main(String[] args){
-        int size = 15000000;
+        int size = 25000000;
         Vector3f[] findDistanceFromBuffers = TestUtils.createRandomVectorArray(size);
 	Vector3f[] vectors = TestUtils.createRandomVectorArray(size);
         

@@ -5,28 +5,31 @@
 package net.skyebook.aparapi;
 
 import com.amd.aparapi.Kernel;
-import com.jme3.math.Vector3f;
-import net.skyebook.cl.TestUtils;
+import com.jme3.scene.shape.Sphere;
 
 /**
  *
  * @author Skye Book
  */
-public class AparapiDistanceTest {
+public class CollisionTest {
 
     public static void main(String[] args) {
+        for (int i = 0; i < 1; i++) {
+            int size = 512;
 
-        for (int i = 0; i < 5; i++) {
-            int size = 25000000;
-            final Vector3f[] one = TestUtils.createRandomVectorArray(size);
-            final Vector3f[] two = TestUtils.createRandomVectorArray(size);
+            final Sphere[] spheres = new Sphere[size];
+            for (int j = 0; j < size; j++) {
+                spheres[j] = new Sphere(64, 64, 50);
+            }
+
+            System.out.println(spheres[0].getTriangleCount() + " Traingles");
 
             Kernel kernel = new Kernel() {
 
                 @Override
                 public void run() {
                     int gid = getGlobalId();
-                    float something = one[gid].x+two[gid].x;
+                    spheres[gid].createCollisionData();
                 }
             };
 
